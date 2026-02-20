@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表情包模板生成器 - 四模板</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'LiuhuanKatong';
+            src: url('./刘欢卡通手书.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'LiuhuanKatong', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 2600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        /* 控制面板 */
+        .control-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .control-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .control-group label {
+            display: block;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .control-group input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        .control-group input[type="text"]:focus {
+            outline: none;
+            border-color: #FECF78;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FECF78 0%, #FFB347 100%);
+            color: #333;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(254, 207, 120, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: #fff;
+        }
+
+        /* 四模板预览区 - 2x2网格 */
+        .templates-wrapper {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            justify-items: center;
+        }
+
+        .template-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .template-section:hover {
+            transform: scale(1.02);
+        }
+
+        .template-label {
+            color: #FECF78;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        /* ========== 模板1样式 - 1200×1600 ========== */
+        .template1-card {
+            width: 600px;
+            height: 800px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .template1-header {
+            height: 320px;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            background: linear-gradient(135deg, #FECF78 0%, #FFB347 100%);
+            flex-shrink: 0;
+        }
+
+        .template1-header-left {
+            flex: 0 0 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .template1-main-image {
+            width: 280px;
+            height: 280px;
+            object-fit: contain;
+        }
+
+        .template1-header-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .template1-header-top {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 0;
+        }
+
+        .template1-count {
+            color: rgba(255,255,255,0.95);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .template1-icons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .template1-icons svg {
+            width: 24px;
+            height: 24px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .template1-header-bottom {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .template1-title {
+            color: #fff;
+            font-size: 42px;
+            font-weight: 700;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+            line-height: 1.2;
+        }
+
+        .template1-subtitle {
+            color: rgba(255,255,255,0.95);
+            font-size: 30px;
+            font-weight: 500;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .template1-grid {
+            background: #fff;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 0;
+            flex: 1;
+        }
+
+        .template1-item {
+            background: transparent;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+            height: 160px;
+        }
+
+        .template1-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* ========== 模板2/3/4样式 - 1200×1600 纯网格 ========== */
+        .template-grid-card {
+            width: 600px;
+            height: 800px;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 200px);
+            grid-template-rows: repeat(5, 160px);
+            gap: 0;
+            width: 600px;
+            height: 800px;
+        }
+
+        .template-grid-item {
+            width: 200px;
+            height: 160px;
+            background: transparent;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .template-grid-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 占位符 */
+        .placeholder {
+            color: #ccc;
+            font-size: 14px;
+            background: #f0f0f0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 操作按钮 */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .action-buttons .btn {
+            padding: 16px 40px;
+            font-size: 18px;
+        }
+
+        /* 路径显示 */
+        .path-display {
+            color: #FECF78;
+            font-size: 14px;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        /* 加载动画 */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #FECF78;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading p {
+            color: #fff;
+            margin-top: 16px;
+            font-size: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #folder-input, #main-image-input {
+            display: none;
+        }
+
+        /* 大图预览模态框 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .modal-content img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* 响应式 */
+        @media (max-width: 1300px) {
+            .templates-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 表情包模板生成器</h1>
+        <p class="subtitle">四模板同时预览（点击模板查看大图）- 模板2/3/4按正序循环分配图片</p>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <div class="control-row">
+                <div class="control-group" style="flex: 2;">
+                    <label>📁 表情包图片文件夹（模板2/3/4各需15张，共45张，不足则循环）</label>
+                    <input type="text" id="folder-path" placeholder="选择包含表情包的文件夹">
+                    <div class="path-display" id="path-display"></div>
+                </div>
+                <div class="control-group" style="flex: 0 0 auto; display: flex; align-items: flex-end;">
+                    <button class="btn btn-secondary" onclick="selectFolder()">📂 选择文件夹</button>
+                    <input type="file" id="folder-input" webkitdirectory directory multiple onchange="handleFolderSelect(event)">
+                </div>
+            </div>
+
+            <div class="control-row">
+                <div class="control-group" style="flex: 2;">
+                    <label>🖼️ 模板1自定义主图（可选，不选则随机抽取）</label>
+                    <input type="text" id="main-image-path" placeholder="不选则随机，点击右侧可指定主图" readonly>
+                    <div class="path-display" id="main-image-display">未选择，模板1将随机抽取主图</div>
+                </div>
+                <div class="control-group" style="flex: 0 0 auto; display: flex; align-items: flex-end;">
+                    <button class="btn btn-secondary" onclick="selectMainImage()">🖼️ 选择主图</button>
+                    <input type="file" id="main-image-input" accept="image/*" onchange="handleMainImageSelect(event)">
+                </div>
+            </div>
+
+            <div class="control-row">
+                <div class="control-group">
+                    <label>主标题</label>
+                    <input type="text" id="main-title-input" value="航海王" placeholder="输入主标题">
+                </div>
+                <div class="control-group">
+                    <label>副标题</label>
+                    <input type="text" id="sub-title-input" value="2026新年表情包" placeholder="输入副标题">
+                </div>
+                <div class="control-group">
+                    <label>表情包数量</label>
+                    <input type="text" id="count-input" value="静态表情包 40张" placeholder="如：40张">
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="generatePreviews()">✨ 生成四模板预览</button>
+                <button class="btn btn-success" onclick="downloadAll()">💾 下载全部四个模板</button>
+            </div>
+        </div>
+
+        <!-- 四模板预览区 -->
+        <div class="templates-wrapper">
+            <!-- 模板1 -->
+            <div class="template-section" onclick="showModal('template1-card')">
+                <div class="template-label">模板1 - 头图+标题+九宫格（随机10张）</div>
+                <div class="template1-card" id="template1-card">
+                    <div class="template1-header" id="template1-header">
+                        <div class="template1-header-left">
+                            <img class="template1-main-image" id="template1-main-img" src="" alt="主图" style="display: none;">
+                            <div class="placeholder" id="template1-main-placeholder">主图</div>
+                        </div>
+                        <div class="template1-header-right">
+                            <div class="template1-header-top">
+                                <span class="template1-count" id="template1-count">静态表情包 40张</span>
+                                <div class="template1-icons">
+                                    <svg width="24" height="24" viewBox="0 0 94 94" fill="none"><rect width="94" height="94" rx="20" fill="#07C160"/><path d="M38.5 35C36.5 35 35 36.5 35 38.5C35 40.5 36.5 42 38.5 42C40.5 42 42 40.5 42 38.5C42 36.5 40.5 35 38.5 35ZM55.5 47C54 47 52.5 48.2 52.5 49.5C52.5 50.8 54 52 55.5 52C57.5 52 58.5 50.5 58.5 49.5C58.5 48.5 57.5 47 55.5 47ZM50 42C52 42 53.5 40.5 53.5 38.5C53.5 36.5 52 35 50 35C48 35 46.5 36.5 46.5 38.5C46.5 40.5 48 42 50 42ZM65 47C64 47 62.5 48.2 62.5 49.5C62.5 50.8 63.5 52 65 52C67 52 68 50.5 68 49.5C68 48.5 67 47 65 47Z" fill="white"/><path d="M47 5C24 5 5 24 5 47C5 70 24 89 47 89C70 89 89 70 89 47C89 24 70 5 47 5ZM40 59C37.5 59 35.5 58.5 33 58L26.5 61.5L28.5 55.5C23.5 52 20.5 47.5 20.5 42C20.5 32.5 29 25 40 25C49.5 25 58 31 59.5 39C59 38.5 58.5 38.5 58 38.5C49 38.5 42 45.5 42 54C42 55.5 42.5 57 43 58.5C42 58.5 41 59 40 59ZM68.5 67.5L70 72.5L64.5 69.5C62.5 70 60.5 70.5 58.5 70.5C49 70.5 41.5 64 41.5 55.5C41.5 47.5 49 41 58 41C66.5 41 74 47.5 74 55.5C74 60 71 64 68.5 67.5Z" fill="white"/></svg>
+                                    <svg width="24" height="24" viewBox="0 0 96 96" fill="none"><rect width="96" height="96" rx="20" fill="#12B7F5"/><path d="M48 85C41 85 35 83 31 80C29 80 26.5 81 25 82C23.5 83 23.5 84 24 84.5C25 86 43 85.5 48 85V85Z" fill="#FAAD08"/><path d="M47 85C54 85 60 83 64 80C66 80 68.5 81 70 82C71.5 83 71.5 84 71 84.5C70 86 52 85.5 47 85V85H47Z" fill="#FAAD08"/><path d="M47 44C58 44 67 42 70 41.5C70.5 41.5 71 41 71 41V39.5C71 25 64 10 47 10C30 10 23 25 23 39.5C23 40.5 23 42 23.5 42.5C23.5 42.5 23.5 42.5 24 42.5C27 43.5 36 44 47 44.5H47Z" fill="black"/><path d="M77.5 59C77 57 76 54.5 75 52C75 52 74.5 52 74 52C65.5 54.5 55 56 47.5 56H47C39.5 56 29 54.5 20.5 52C20 52 19.5 52 19.5 52C18.5 54.5 17.5 57 17 59C14 69.5 15 74 16 74C17.5 74 22.5 66 22.5 66C22.5 74.5 30 87.5 47.5 87.5H48.5C66 87.5 73.5 74.5 73.5 66C73.5 66 78.5 74 80 74C81 74 82 69.5 77.5 59Z" fill="black"/><path d="M41.5 30C39.5 30 38 28 37.5 25C37 22 39 20 41 20C43 20 44.5 22 45 25C45.5 28 43.5 30 41.5 30ZM58.5 25C58 28 56 30 54.5 30C52.5 30 50.5 28 51 25C51.5 22 53.5 20 55.5 20C57.5 20 59 22 58.5 25Z" fill="white"/><path d="M62 35.5C61.5 34 55.5 32.5 48 32.5H47.5C40 32.5 34 34 33.5 35.5C33.5 35.5 33.5 35.5 33.5 36C33.5 36.5 33.5 37 34 37.5C34.5 38.5 41 42.5 48 42.5H48.5C55.5 42.5 62 38.5 62.5 37.5C63 37 63 36.5 63 36C63 35.5 62.5 35.5 62 35.5Z" fill="#FAAD08"/></svg>
+                                </div>
+                            </div>
+                            <div class="template1-header-bottom">
+                                <div class="template1-title" id="template1-title">航海王</div>
+                                <div class="template1-subtitle" id="template1-subtitle">2026新年表情包</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="template1-grid" id="template1-grid">
+                        <div class="template1-item"><span class="placeholder">1</span></div>
+                        <div class="template1-item"><span class="placeholder">2</span></div>
+                        <div class="template1-item"><span class="placeholder">3</span></div>
+                        <div class="template1-item"><span class="placeholder">4</span></div>
+                        <div class="template1-item"><span class="placeholder">5</span></div>
+                        <div class="template1-item"><span class="placeholder">6</span></div>
+                        <div class="template1-item"><span class="placeholder">7</span></div>
+                        <div class="template1-item"><span class="placeholder">8</span></div>
+                        <div class="template1-item"><span class="placeholder">9</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模板2 -->
+            <div class="template-section" onclick="showModal('template2-card')">
+                <div class="template-label">模板2 - 3×5网格（正序1-15张）</div>
+                <div class="template-grid-card" id="template2-card">
+                    <div class="template-grid" id="template2-grid">
+                        <!-- 15个占位 -->
+                        <div class="template-grid-item"><span class="placeholder">1</span></div>
+                        <div class="template-grid-item"><span class="placeholder">2</span></div>
+                        <div class="template-grid-item"><span class="placeholder">3</span></div>
+                        <div class="template-grid-item"><span class="placeholder">4</span></div>
+                        <div class="template-grid-item"><span class="placeholder">5</span></div>
+                        <div class="template-grid-item"><span class="placeholder">6</span></div>
+                        <div class="template-grid-item"><span class="placeholder">7</span></div>
+                        <div class="template-grid-item"><span class="placeholder">8</span></div>
+                        <div class="template-grid-item"><span class="placeholder">9</span></div>
+                        <div class="template-grid-item"><span class="placeholder">10</span></div>
+                        <div class="template-grid-item"><span class="placeholder">11</span></div>
+                        <div class="template-grid-item"><span class="placeholder">12</span></div>
+                        <div class="template-grid-item"><span class="placeholder">13</span></div>
+                        <div class="template-grid-item"><span class="placeholder">14</span></div>
+                        <div class="template-grid-item"><span class="placeholder">15</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模板3 -->
+            <div class="template-section" onclick="showModal('template3-card')">
+                <div class="template-label">模板3 - 3×5网格（正序16-30张）</div>
+                <div class="template-grid-card" id="template3-card">
+                    <div class="template-grid" id="template3-grid">
+                        <!-- 15个占位 -->
+                        <div class="template-grid-item"><span class="placeholder">16</span></div>
+                        <div class="template-grid-item"><span class="placeholder">17</span></div>
+                        <div class="template-grid-item"><span class="placeholder">18</span></div>
+                        <div class="template-grid-item"><span class="placeholder">19</span></div>
+                        <div class="template-grid-item"><span class="placeholder">20</span></div>
+                        <div class="template-grid-item"><span class="placeholder">21</span></div>
+                        <div class="template-grid-item"><span class="placeholder">22</span></div>
+                        <div class="template-grid-item"><span class="placeholder">23</span></div>
+                        <div class="template-grid-item"><span class="placeholder">24</span></div>
+                        <div class="template-grid-item"><span class="placeholder">25</span></div>
+                        <div class="template-grid-item"><span class="placeholder">26</span></div>
+                        <div class="template-grid-item"><span class="placeholder">27</span></div>
+                        <div class="template-grid-item"><span class="placeholder">28</span></div>
+                        <div class="template-grid-item"><span class="placeholder">29</span></div>
+                        <div class="template-grid-item"><span class="placeholder">30</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模板4 -->
+            <div class="template-section" onclick="showModal('template4-card')">
+                <div class="template-label">模板4 - 3×5网格（正序31-45张）</div>
+                <div class="template-grid-card" id="template4-card">
+                    <div class="template-grid" id="template4-grid">
+                        <!-- 15个占位 -->
+                        <div class="template-grid-item"><span class="placeholder">31</span></div>
+                        <div class="template-grid-item"><span class="placeholder">32</span></div>
+                        <div class="template-grid-item"><span class="placeholder">33</span></div>
+                        <div class="template-grid-item"><span class="placeholder">34</span></div>
+                        <div class="template-grid-item"><span class="placeholder">35</span></div>
+                        <div class="template-grid-item"><span class="placeholder">36</span></div>
+                        <div class="template-grid-item"><span class="placeholder">37</span></div>
+                        <div class="template-grid-item"><span class="placeholder">38</span></div>
+                        <div class="template-grid-item"><span class="placeholder">39</span></div>
+                        <div class="template-grid-item"><span class="placeholder">40</span></div>
+                        <div class="template-grid-item"><span class="placeholder">41</span></div>
+                        <div class="template-grid-item"><span class="placeholder">42</span></div>
+                        <div class="template-grid-item"><span class="placeholder">43</span></div>
+                        <div class="template-grid-item"><span class="placeholder">44</span></div>
+                        <div class="template-grid-item"><span class="placeholder">45</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p id="loading-text">正在生成...</p>
+    </div>
+
+    <!-- 大图预览模态框 -->
+    <div class="modal" id="modal" onclick="closeModal()">
+        <button class="modal-close" onclick="closeModal()">×</button>
+        <div class="modal-content" id="modal-content" onclick="event.stopPropagation()">
+            <!-- 动态插入大图 -->
+        </div>
+    </div>
+
+    <script>
+        let allImages = [];
+        let mainImageFile = null;
+
+        function selectFolder() {
+            document.getElementById('folder-input').click();
+        }
+
+        function handleFolderSelect(event) {
+            const files = Array.from(event.target.files);
+            const imageFiles = files.filter(f => 
+                f.type.startsWith('image/') && 
+                !f.name.startsWith('.') &&
+                !f.name.includes('__MACOSX')
+            );
+
+            if (imageFiles.length < 1) {
+                alert('未找到图片文件');
+                return;
+            }
+
+            // 按文件名正序排序
+            allImages = imageFiles.sort((a, b) => a.name.localeCompare(b.name));
+            
+            const folderName = files[0]?.webkitRelativePath?.split('/')[0] || '已选择文件夹';
+            document.getElementById('path-display').textContent = 
+                `${folderName} (${imageFiles.length} 张图片，已按文件名正序排序)`;
+            
+            // 智能拆分标题
+            const { mainTitle, subTitle } = parseFolderName(folderName);
+            document.getElementById('main-title-input').value = mainTitle;
+            document.getElementById('sub-title-input').value = subTitle;
+            
+            showToast(`📁 已读取 ${imageFiles.length} 张图片`);
+        }
+
+        function parseFolderName(folderName) {
+            let cleanName = folderName.replace(/\.zip$/i, '').replace(/^未命名文件夹$/i, '').trim();
+            if (!cleanName) return { mainTitle: '表情包', subTitle: '' };
+            
+            const separators = /[\s\-_·]+/;
+            const parts = cleanName.split(separators).filter(p => p.trim());
+            
+            if (cleanName.includes('表情包')) {
+                const emojiIndex = parts.findIndex(p => p.includes('表情包'));
+                if (emojiIndex > 0) {
+                    const mainParts = parts.slice(0, emojiIndex + 1);
+                    const subParts = parts.slice(emojiIndex + 1);
+                    return {
+                        mainTitle: mainParts.join(''),
+                        subTitle: subParts.join('') || '精选合集'
+                    };
+                } else if (emojiIndex === 0 && parts.length > 1) {
+                    return { mainTitle: parts[0], subTitle: parts.slice(1).join('') };
+                } else {
+                    return { mainTitle: cleanName, subTitle: '精选合集' };
+                }
+            }
+            
+            const themeWords = ['春季', '夏季', '秋季', '冬季', '春天', '夏天', '秋天', '冬天', 
+                               '新年', '春节', '圣诞', '万圣节', '情人节', '夏日', '冬日',
+                               '日常', '工作', '学习', '恋爱', '萌系', '慵懒', '可爱'];
+            
+            for (let i = 0; i < parts.length; i++) {
+                if (themeWords.some(theme => parts[i].includes(theme))) {
+                    const mainParts = parts.slice(0, i + 1);
+                    const subParts = parts.slice(i + 1);
+                    let subTitle = subParts.join('');
+                    if (!subTitle) {
+                        subTitle = i > 0 ? mainParts.pop() : '表情包';
+                    }
+                    return { mainTitle: mainParts.join('') + '表情包', subTitle: subTitle };
+                }
+            }
+            
+            if (parts.length === 1) {
+                return { mainTitle: cleanName + '表情包', subTitle: '精选合集' };
+            }
+            
+            const mid = Math.ceil(parts.length / 2);
+            return { mainTitle: parts.slice(0, mid).join('') + '表情包', subTitle: parts.slice(mid).join('') || '精选合集' };
+        }
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function selectMainImage() {
+            document.getElementById('main-image-input').click();
+        }
+
+        function handleMainImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                alert('请选择图片文件');
+                return;
+            }
+            mainImageFile = file;
+            document.getElementById('main-image-path').value = file.name;
+            document.getElementById('main-image-display').textContent = `已选择: ${file.name}（将替换模板1随机主图）`;
+            showToast('🖼️ 主图已选择');
+        }
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 按正序循环获取图片（模板2/3/4使用）
+        function getSequentialImages(templateIndex) {
+            // templateIndex: 0=模板2, 1=模板3, 2=模板4
+            const startIndex = templateIndex * 15; // 0, 15, 30
+            const result = [];
+            
+            for (let i = 0; i < 15; i++) {
+                const index = (startIndex + i) % allImages.length;
+                result.push(allImages[index]);
+            }
+            
+            return result;
+        }
+
+        async function generatePreviews() {
+            if (allImages.length < 1) {
+                alert('请先选择图片文件夹');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            loading.classList.add('active');
+
+            try {
+                // 更新模板1文字
+                document.getElementById('template1-title').textContent = document.getElementById('main-title-input').value;
+                document.getElementById('template1-subtitle').textContent = document.getElementById('sub-title-input').value;
+                document.getElementById('template1-count').textContent = document.getElementById('count-input').value;
+
+                // ========== 模板1：随机抽取10张 ==========
+                const shuffledForT1 = shuffleArray(allImages);
+                const t1MainImgFile = mainImageFile || shuffledForT1[0];
+                const t1MainData = await readFileAsDataURL(t1MainImgFile);
+                
+                const t1MainImg = document.getElementById('template1-main-img');
+                t1MainImg.src = t1MainData;
+                t1MainImg.style.display = 'block';
+                document.getElementById('template1-main-placeholder').style.display = 'none';
+
+                // 提取主色调
+                const tempImg = new Image();
+                tempImg.src = t1MainData;
+                tempImg.onload = () => {
+                    try {
+                        const colorThief = new ColorThief();
+                        const color = colorThief.getColor(tempImg);
+                        const rgba = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.9)`;
+                        document.getElementById('template1-header').style.background = rgba;
+                    } catch(e) {}
+                };
+
+                // 填充模板1的9张表情包
+                const t1Grid = document.getElementById('template1-grid');
+                t1Grid.innerHTML = '';
+                const t1StickerImages = mainImageFile ? shuffledForT1.slice(0, 9) : shuffledForT1.slice(1, 10);
+                
+                for (let i = 0; i < 9; i++) {
+                    const imgData = await readFileAsDataURL(t1StickerImages[i]);
+                    const item = document.createElement('div');
+                    item.className = 'template1-item';
+                    const img = document.createElement('img');
+                    img.src = imgData;
+                    img.alt = `${i+1}`;
+                    item.appendChild(img);
+                    t1Grid.appendChild(item);
+                }
+
+                // ========== 模板2：正序1-15张（循环）==========
+                const t2Images = getSequentialImages(0);
+                const t2Grid = document.getElementById('template2-grid');
+                t2Grid.innerHTML = '';
+                for (let i = 0; i < 15; i++) {
+                    const imgData = await readFileAsDataURL(t2Images[i]);
+                    const item = document.createElement('div');
+                    item.className = 'template-grid-item';
+                    const img = document.createElement('img');
+                    img.src = imgData;
+                    img.alt = `${i+1}`;
+                    item.appendChild(img);
+                    t2Grid.appendChild(item);
+                }
+
+                // ========== 模板3：正序16-30张（循环）==========
+                const t3Images = getSequentialImages(1);
+                const t3Grid = document.getElementById('template3-grid');
+                t3Grid.innerHTML = '';
+                for (let i = 0; i < 15; i++) {
+                    const imgData = await readFileAsDataURL(t3Images[i]);
+                    const item = document.createElement('div');
+                    item.className = 'template-grid-item';
+                    const img = document.createElement('img');
+                    img.src = imgData;
+                    img.alt = `${i+16}`;
+                    item.appendChild(img);
+                    t3Grid.appendChild(item);
+                }
+
+                // ========== 模板4：正序31-45张（循环）==========
+                const t4Images = getSequentialImages(2);
+                const t4Grid = document.getElementById('template4-grid');
+                t4Grid.innerHTML = '';
+                for (let i = 0; i < 15; i++) {
+                    const imgData = await readFileAsDataURL(t4Images[i]);
+                    const item = document.createElement('div');
+                    item.className = 'template-grid-item';
+                    const img = document.createElement('img');
+                    img.src = imgData;
+                    img.alt = `${i+31}`;
+                    item.appendChild(img);
+                    t4Grid.appendChild(item);
+                }
+
+                showToast('✨ 四模板预览生成成功！点击模板查看大图');
+            } catch (error) {
+                console.error(error);
+                alert('生成失败：' + error.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        async function downloadAll() {
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loading-text');
+            loading.classList.add('active');
+
+            const templates = [
+                { id: 'template1-card', name: '模板1' },
+                { id: 'template2-card', name: '模板2' },
+                { id: 'template3-card', name: '模板3' },
+                { id: 'template4-card', name: '模板4' }
+            ];
+
+            const folderName = document.getElementById('main-title-input').value;
+            const timestamp = Date.now();
+
+            try {
+                for (let i = 0; i < templates.length; i++) {
+                    const template = templates[i];
+                    loadingText.textContent = `正在渲染${template.name}...`;
+                    
+                    const canvas = await html2canvas(document.getElementById(template.id), {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: false,
+                        backgroundColor: '#ffffff',
+                        logging: false
+                    });
+
+                    const link = document.createElement('a');
+                    link.download = `${template.name}_${folderName}_${timestamp}.jpg`;
+                    link.href = canvas.toDataURL('image/jpeg', 0.95);
+                    link.click();
+
+                    if (i < templates.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 800));
+                    }
+                }
+
+                showToast('💾 四个模板全部下载成功！');
+            } catch (error) {
+                console.error('下载错误:', error);
+                alert('下载失败：' + error.message);
+            } finally {
+                loading.classList.remove('active');
+                loadingText.textContent = '正在生成...';
+            }
+        }
+
+        // 显示大图模态框
+        async function showModal(cardId) {
+            const card = document.getElementById(cardId);
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modal-content');
+            
+            // 渲染高清大图
+            const canvas = await html2canvas(card, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: '#ffffff',
+                logging: false
+            });
+
+            modalContent.innerHTML = `<img src="${canvas.toDataURL('image/jpeg', 0.95)}" alt="预览">`;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #333;
+                color: #FECF78;
+                padding: 16px 32px;
+                border-radius: 10px;
+                font-size: 16px;
+                z-index: 10000;
+                animation: fadeIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        // 添加动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateX(-50%) translateY(0); }
+                to { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "collection_folder": "/Users/cy/Documents/03 life/AI design/aicode/test",
+  "output_folder": "/Users/cy/Documents/03 life/AI design/aicode/test_output",
+  "min_images": 15,
+  "templates": {
+    "template1": true,
+    "template2": true,
+    "template3": true,
+    "template4": true
+  },
+  "font_path": "刘欢卡通手书.ttf",
+  "image_quality": 95,
+  "canvas_size": [1200, 1600],
+  "auto_start": true
+}

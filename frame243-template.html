@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表情包展示模板 - Frame 243</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* 编辑面板 */
+        .edit-panel {
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .edit-panel h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #FECF78;
+            padding-bottom: 10px;
+        }
+
+        .edit-group {
+            margin-bottom: 20px;
+        }
+
+        .edit-group label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .edit-group input[type="text"],
+        .edit-group input[type="file"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .edit-group input[type="text"]:focus {
+            outline: none;
+            border-color: #FECF78;
+        }
+
+        .edit-group .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .edit-group .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .edit-group .file-input-label {
+            display: block;
+            padding: 8px 12px;
+            background: #f0f0f0;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .edit-group .file-input-label:hover {
+            background: #e8e8e8;
+            border-color: #FECF78;
+        }
+
+        .edit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #FECF78 0%, #FFB347 100%);
+            border: none;
+            border-radius: 8px;
+            color: #333;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .edit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(254, 207, 120, 0.4);
+        }
+
+        .preview-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        /* 主容器 */
+        .container {
+            width: 960px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-left: 340px;
+        }
+
+        /* 头部区域 */
+        .header {
+            background: linear-gradient(135deg, #FECF78 0%, #FFB347 100%);
+            height: 432px;
+            position: relative;
+            padding: 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 0;
+        }
+
+        .header-image {
+            width: 411px;
+            height: 411px;
+            object-fit: contain;
+            margin-top: 26px;
+            margin-left: 0;
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .platform-icons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .platform-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .header-title {
+            text-align: right;
+            color: white;
+            margin-top: 80px;
+        }
+
+        .header-title h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-title p {
+            font-size: 36px;
+            font-weight: 500;
+            opacity: 0.95;
+        }
+
+        /* 表情包网格 */
+        .sticker-grid {
+            background: white;
+            padding: 57px 37px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 47px;
+        }
+
+        .sticker-item {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .sticker-item:hover {
+            transform: scale(1.02);
+        }
+
+        .sticker-item img {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .sticker-item .edit-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(254, 207, 120, 0.9);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .sticker-item:hover .edit-overlay {
+            opacity: 1;
+        }
+
+        .edit-overlay span {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1400px) {
+            .edit-panel {
+                position: relative;
+                left: auto;
+                top: auto;
+                width: 100%;
+                max-width: 960px;
+                margin-bottom: 20px;
+            }
+            
+            body {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .container {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+            }
+            
+            .header {
+                height: auto;
+                flex-direction: column;
+                padding: 20px;
+            }
+            
+            .header-image {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .header-title h1 {
+                font-size: 28px;
+            }
+            
+            .header-title p {
+                font-size: 20px;
+            }
+            
+            .sticker-grid {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 30px 20px;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 编辑面板 -->
+    <div class="edit-panel">
+        <h3>🎨 编辑模板</h3>
+        
+        <div class="edit-group">
+            <label>标题文字（第一行）</label>
+            <input type="text" id="edit-title-1" value="航海王" placeholder="输入标题">
+        </div>
+        
+        <div class="edit-group">
+            <label>标题文字（第二行）</label>
+            <input type="text" id="edit-title-2" value="2026新年表情包" placeholder="输入副标题">
+        </div>
+        
+        <div class="edit-group">
+            <label>表情包数量</label>
+            <input type="text" id="edit-count" value="静态表情包 40张" placeholder="例如：40张">
+        </div>
+        
+        <div class="edit-group">
+            <label>左上角主图</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="edit-header-img" accept="image/*">
+                <label for="edit-header-img" class="file-input-label">点击选择图片</label>
+            </div>
+        </div>
+        
+        <div class="edit-group">
+            <label>表情包图片 1</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="edit-sticker-1" accept="image/*" data-index="0">
+                <label for="edit-sticker-1" class="file-input-label">点击选择图片</label>
+            </div>
+        </div>
+        
+        <div class="edit-group">
+            <label>表情包图片 2</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="edit-sticker-2" accept="image/*" data-index="1">
+                <label for="edit-sticker-2" class="file-input-label">点击选择图片</label>
+            </div>
+        </div>
+        
+        <div class="edit-group">
+            <label>表情包图片 3</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="edit-sticker-3" accept="image/*" data-index="2">
+                <label for="edit-sticker-3" class="file-input-label">点击选择图片</label>
+            </div>
+        </div>
+        
+        <button class="edit-btn" onclick="applyChanges()">✨ 应用更改</button>
+        
+        <p class="preview-hint">提示：点击表情包可直接替换图片</p>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 头部区域 -->
+        <div class="header">
+            <div class="header-left">
+                <img id="header-img" class="header-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='411' height='411'%3E%3Crect fill='%23f0f0f0' width='411' height='411'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='16'%3E主图占位%3C/text%3E%3C/svg%3E" alt="主图">
+            </div>
+            <div class="header-right">
+                <div class="header-info">
+                    <span id="sticker-count">静态表情包 40张</span>
+                    <div class="platform-icons">
+                        <div class="platform-icon">💬</div>
+                        <div class="platform-icon">🐧</div>
+                    </div>
+                </div>
+                <div class="header-title">
+                    <h1 id="main-title">航海王</h1>
+                    <p id="sub-title">2026新年表情包</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表情包网格 -->
+        <div class="sticker-grid" id="sticker-grid">
+            <!-- 9个表情包占位 -->
+            <div class="sticker-item" onclick="triggerFileInput(0)">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23f5f5f5' width='300' height='300' rx='12'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='14'%3E表情包 1%3C/text%3E%3C/svg%3E" alt="表情包1" data-index="0">
+                <div class="edit-overlay"><span>点击替换</span></div>
+            </div>
+            <div class="sticker-item" onclick="triggerFileInput(1)">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23f5f5f5' width='300' height='300' rx='12'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='14'%3E表情包 2%3C/text%3E%3C/svg%3E" alt="表情包2" data-index="1">
+                <div class="edit-overlay"><span>点击替换</span></div>
+            </div>
+            <div class="sticker-item" onclick="triggerFileInput(2)">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23f5f5f5' width='300' height='300' rx='12'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='14'%3E表情包 3%3C/text%3E%3C/svg%3E" alt="表情包3" data-index="2">
+                <div class="edit-overlay"><span>点击替换</span></div>
+            </div>
+            <div class="sticker-item" onclick="triggerFileInput(3)">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23f5f5f5' width='300' height='300' rx='12'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='14'%3E表情包 4%3C/text%3E%3C/svg%3E" alt="表情包4" data-index="3">
+                <div class="edit-overlay"><span>点击替换</span></div>
+            </div>
+            <div class="sticker-item" onclick="triggerFileInput(4)">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23f5f5f5' width='300' height='300' rx='12'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='14'%3E表情包 5%3C/text%3E%3C/svg%3E" alt="表情包5" data-index="4">
+                <div class="edit-overlay"><span>点击替换</span></div>
+            </div>
+            <div class="sticker-item" onclick="triggerFileInput(5)">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23f5f5f5' width='300' height='300' rx='12'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='14'%3E表情包 6%3C/text%3E%3C/svg%3E" alt="表情包6" data-index="5">
+                <div class="edit-overlay"><span>点击替换</span></div>
+            </div>
+            <div class="sticker-item" onclick="triggerFileInput(6)">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23f5f5f5' width='300' height='300' rx='12'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='14'%3E表情包 7%3C/text%3E%3C/svg%3E" alt="表情包7" data-index="6">
+                <div class="edit-overlay"><span>点击替换</span></div>
+            </div>
+            <div class="sticker-item" onclick="triggerFileInput(7)">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23f5f5f5' width='300' height='300' rx='12'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='14'%3E表情包 8%3C/text%3E%3C/svg%3E" alt="表情包8" data-index="7">
+                <div class="edit-overlay"><span>点击替换</span></div>
+            </div>
+            <div class="sticker-item" onclick="triggerFileInput(8)">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23f5f5f5' width='300' height='300' rx='12'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='14'%3E表情包 9%3C/text%3E%3C/svg%3E" alt="表情包9" data-index="8">
+                <div class="edit-overlay"><span>点击替换</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 存储图片数据
+        let stickerImages = new Array(9).fill(null);
+        let headerImage = null;
+
+        // 应用更改
+        function applyChanges() {
+            // 更新文字
+            document.getElementById('main-title').textContent = document.getElementById('edit-title-1').value;
+            document.getElementById('sub-title').textContent = document.getElementById('edit-title-2').value;
+            document.getElementById('sticker-count').textContent = document.getElementById('edit-count').value;
+
+            // 更新主图
+            const headerFile = document.getElementById('edit-header-img').files[0];
+            if (headerFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('header-img').src = e.target.result;
+                };
+                reader.readAsDataURL(headerFile);
+            }
+
+            // 更新表情包
+            for (let i = 0; i < 3; i++) {
+                const fileInput = document.getElementById(`edit-sticker-${i+1}`);
+                if (fileInput.files[0]) {
+                    updateStickerImage(i, fileInput.files[0]);
+                }
+            }
+
+            // 显示成功提示
+            showToast('✨ 更改已应用！');
+        }
+
+        // 触发文件选择
+        function triggerFileInput(index) {
+            // 创建临时文件输入
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                if (e.target.files[0]) {
+                    updateStickerImage(index, e.target.files[0]);
+                }
+            };
+            input.click();
+        }
+
+        // 更新表情包图片
+        function updateStickerImage(index, file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.querySelector(`img[data-index="${index}"]`);
+                if (img) {
+                    img.src = e.target.result;
+                }
+                stickerImages[index] = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 显示提示
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #333;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                z-index: 9999;
+                animation: fadeInOut 2s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        // 监听文件选择变化
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const label = e.target.nextElementSibling;
+                if (e.target.files[0]) {
+                    label.textContent = `已选择: ${e.target.files[0].name}`;
+                    label.style.background = '#d4edda';
+                    label.style.borderColor = '#28a745';
+                }
+            });
+        });
+
+        // 添加动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+                20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
