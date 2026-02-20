@@ -129,16 +129,34 @@ class ImageProcessor:
         self._load_fonts()
     
     def _load_fonts(self):
-        """加载字体"""
-        try:
-            self.font_title = ImageFont.truetype(str(self.font_path), 72)
-            self.font_subtitle = ImageFont.truetype(str(self.font_path), 42)
-            self.font_small = ImageFont.truetype(str(self.font_path), 24)
-        except Exception as e:
-            log(f"字体加载失败: {e}，使用默认字体", "WARNING")
-            self.font_title = ImageFont.load_default()
-            self.font_subtitle = self.font_title
-            self.font_small = self.font_title
+        """加载字体 - 优先使用系统字体确保字符完整"""
+        self.font_title = None
+        self.font_subtitle = None
+        self.font_small = None
+        
+        # 优先尝试系统字体确保中文字符完整
+        font_candidates = [
+            Path("/System/Library/Fonts/PingFang.ttc"),  # macOS 苹方
+            Path("/System/Library/Fonts/STHeiti Light.ttc"),  # macOS 黑体
+            Path("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"),  # Linux Noto
+            self.font_path,  # 用户指定字体（可能缺少某些字符）
+        ]
+        
+        for font_path in font_candidates:
+            if font_path.exists():
+                try:
+                    self.font_title = ImageFont.truetype(str(font_path), 72)
+                    self.font_subtitle = ImageFont.truetype(str(font_path), 42)
+                    self.font_small = ImageFont.truetype(str(font_path), 24)
+                    log(f"字体加载成功: {font_path.name}", "SUCCESS")
+                    return
+                except Exception:
+                    continue
+        
+        log("字体加载失败，使用默认字体", "WARNING")
+        self.font_title = ImageFont.load_default()
+        self.font_subtitle = self.font_title
+        self.font_small = self.font_title
     
     def load_icon(self, icon_path: Path, size: Tuple[int, int]) -> Image.Image:
         """加载图标（支持PNG和SVG）"""
@@ -274,8 +292,8 @@ class ImageProcessor:
         # 创建画布
         canvas = Image.new('RGB', (self.canvas_width, self.canvas_height), (255, 255, 255))
         
-        # 头图区域高度
-        header_height = int(self.canvas_height * 0.4)
+        # 头图区域高度 - 匹配网页版 320px (2倍=640px)
+        header_height = 640
         
         # 获取主图
         if folder.main_image and folder.main_image.exists():
@@ -293,13 +311,16 @@ class ImageProcessor:
         # 粘贴头图背景
         canvas.paste(header_bg, (0, 0))
         
-        # 左侧主图
+        # 左侧主图 - 匹配网页版 280x280 (2倍=560x560)
+        main_img_size = 560
         if main_image_path:
-            main_img = self.load_and_resize_image(main_image_path, (400, 400))
-            # 转换为RGB
-            main_img_rgb = Image.new('RGB', main_img.size, (255, 255, 255))
-            main_img_rgb.paste(main_img, mask=main_img.split()[3] if main_img.mode == 'RGBA' else None)
-            canvas.paste(main_img_rgb, (60, (header_height - 400) // 2))
+            main_img = self.load_and_resize_image(main_image_path, (main_img_size, main_img_size))
+            # 位置：左侧40px留白，垂直居中 (640-560)/2=40
+            paste_y = (header_height - main_img_size) // 2
+            if main_img.mode == 'RGBA':
+                canvas.paste(main_img, (40, paste_y), main_img)
+            else:
+                canvas.paste(main_img, (40, paste_y))
         
         # 绘制右侧文字区域
         draw = ImageDraw.Draw(canvas)
@@ -309,13 +330,32 @@ class ImageProcessor:
         subtitle = folder.subtitle or "表情包合集"
         count_text = f"共 {folder.image_count} 张"
         
-        # 计算文字位置（右侧居中）
-        text_x = 520
-        text_y = header_height // 2
+        # 计算文字位置 - 匹配网页版布局
+        # 左侧主图区域宽: 40 + 560 + 20 = 620px
+        # 右侧文字区起始: 640px, 宽度 1200-640=560px
+        # 文字居中: 640 + 560/2 = 920px
+        text_center_x = 920
+        text_center_y = header_height // 2  # 320
         
-        # 绘制标题
-        draw.text((text_x, text_y - 50), title, fill=(255, 255, 255), font=self.font_title)
-        draw.text((text_x, text_y + 30), subtitle, fill=(255, 255, 255), font=self.font_subtitle)
+        # 绘制标题 - 手动计算居中位置
+        # 如果标题太长，适当缩小字体（使用当前已加载的字体）
+        title_font = self.font_title
+        if len(title) > 8:
+            try:
+                # 使用与主字体相同的字体文件，但缩小字号
+                title_font = ImageFont.truetype(title_font.path, 56)
+            except:
+                title_font = self.font_title
+        
+        # 计算标题尺寸并居中
+        bbox = draw.textbbox((0, 0), title, font=title_font)
+        title_w = bbox[2] - bbox[0]
+        draw.text((text_center_x - title_w // 2, text_center_y - 50), title, fill=(255, 255, 255), font=title_font)
+        
+        # 副标题居中
+        bbox2 = draw.textbbox((0, 0), subtitle, font=self.font_subtitle)
+        subtitle_w = bbox2[2] - bbox2[0]
+        draw.text((text_center_x - subtitle_w // 2, text_center_y + 20), subtitle, fill=(255, 255, 255), font=self.font_subtitle)
         
         # 绘制右上角图标和数量
         # 加载图标
