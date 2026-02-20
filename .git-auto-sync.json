@@ -1,0 +1,7 @@
+{
+  "auto_commit": true,
+  "auto_push": false,
+  "commit_message_template": "auto: {filename} 于 {time}",
+  "ignore_patterns": ["*.tmp", "*.log", ".DS_Store", "__pycache__"],
+  "debounce_seconds": 5
+}
