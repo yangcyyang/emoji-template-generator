@@ -952,6 +952,59 @@
             }
         }
 
+        // 修复 html2canvas 不支持 object-fit 的问题
+        function fixImagesForCapture(container) {
+            const images = container.querySelectorAll('img');
+            const originalData = [];
+            
+            images.forEach((img, index) => {
+                const computedStyle = window.getComputedStyle(img);
+                const objectFit = computedStyle.objectFit;
+                
+                if (objectFit && objectFit !== 'fill') {
+                    // 保存原始数据
+                    originalData.push({
+                        element: img,
+                        parent: img.parentNode,
+                        src: img.src,
+                        width: img.width,
+                        height: img.height,
+                        objectFit: objectFit
+                    });
+                    
+                    // 创建替代 div 使用 background-image
+                    const div = document.createElement('div');
+                    div.style.width = computedStyle.width;
+                    div.style.height = computedStyle.height;
+                    div.style.backgroundImage = `url(${img.src})`;
+                    div.style.backgroundSize = objectFit === 'contain' ? 'contain' : 
+                                               objectFit === 'cover' ? 'cover' : '100% 100%';
+                    div.style.backgroundPosition = 'center';
+                    div.style.backgroundRepeat = 'no-repeat';
+                    div.style.display = computedStyle.display;
+                    div.className = img.className;
+                    
+                    img.parentNode.replaceChild(div, img);
+                }
+            });
+            
+            return originalData;
+        }
+        
+        // 恢复原始图片
+        function restoreImages(originalData) {
+            originalData.forEach(data => {
+                const img = document.createElement('img');
+                img.src = data.src;
+                img.className = data.element.className;
+                img.style.width = data.width + 'px';
+                img.style.height = data.height + 'px';
+                img.style.objectFit = data.objectFit;
+                img.style.display = data.element.style.display;
+                data.parent.replaceChild(img, data.parent.querySelector('div') || data.parent.firstChild);
+            });
+        }
+
         async function downloadAll() {
             const loading = document.getElementById('loading');
             const loadingText = document.getElementById('loading-text');
@@ -972,14 +1025,22 @@
                     const template = templates[i];
                     loadingText.textContent = `正在渲染${template.name}...`;
                     
-                    const canvas = await html2canvas(document.getElementById(template.id), {
+                    const element = document.getElementById(template.id);
+                    
+                    // 修复图片 object-fit
+                    const originalData = fixImagesForCapture(element);
+                    
+                    const canvas = await html2canvas(element, {
                         scale: 2,
                         useCORS: true,
                         allowTaint: false,
                         backgroundColor: '#ffffff',
                         logging: false
                     });
-
+                    
+                    // 恢复原始图片
+                    restoreImages(originalData);
+                    
                     const link = document.createElement('a');
                     link.download = `${template.name}_${folderName}_${timestamp}.jpg`;
                     link.href = canvas.toDataURL('image/jpeg', 0.95);
@@ -1006,7 +1067,9 @@
             const modal = document.getElementById('modal');
             const modalContent = document.getElementById('modal-content');
             
-            // 渲染高清大图
+            // 修复图片 object-fit 并渲染高清大图
+            const originalData = fixImagesForCapture(card);
+            
             const canvas = await html2canvas(card, {
                 scale: 2,
                 useCORS: true,
@@ -1014,6 +1077,9 @@
                 backgroundColor: '#ffffff',
                 logging: false
             });
+            
+            // 恢复原始图片
+            restoreImages(originalData);
 
             modalContent.innerHTML = `<img src="${canvas.toDataURL('image/jpeg', 0.95)}" alt="预览">`;
             modal.classList.add('active');
