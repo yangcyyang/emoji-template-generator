@@ -489,6 +489,27 @@
                 </div>
             </div>
 
+            <div class="control-row">
+                <div class="control-group">
+                    <label>🎨 头图背景色 <small>(留空则自动提取主图色调)</small></label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="color" id="header-bg-color" value="" style="width: 60px; height: 36px; padding: 2px; cursor: pointer;">
+                        <input type="text" id="header-bg-color-text" placeholder="#FFB347 或 rgba(255,179,71,0.9)" style="flex: 1;">
+                        <button class="btn btn-secondary" onclick="resetHeaderBgColor()" style="padding: 8px 16px; font-size: 12px;">🔄 重置自动</button>
+                    </div>
+                    <div class="path-display" id="header-bg-display">当前：自动提取主图色调</div>
+                </div>
+                <div class="control-group">
+                    <label>📐 主图显示模式</label>
+                    <select id="main-image-fit" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444; background: rgba(255,255,255,0.05); color: #fff;">
+                        <option value="contain">Contain (适应框内，不裁剪)</option>
+                        <option value="cover">Cover (填满框，可能裁剪)</option>
+                        <option value="fill">Fill (拉伸填满，可能变形)</option>
+                    </select>
+                    <div class="path-display" id="main-image-fit-display">推荐：Contain 保持原始比例</div>
+                </div>
+            </div>
+
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="generatePreviews()">✨ 生成四模板预览</button>
                 <button class="btn btn-success" onclick="downloadAll()">💾 下载全部四个模板</button>
@@ -628,6 +649,43 @@
     <script>
         let allImages = [];
         let mainImageFile = null;
+        
+        // 颜色选择器联动
+        document.getElementById('header-bg-color').addEventListener('input', function(e) {
+            document.getElementById('header-bg-color-text').value = e.target.value;
+            document.getElementById('header-bg-display').textContent = '已选择：' + e.target.value + '（点击生成模板应用）';
+            document.getElementById('header-bg-display').style.color = '#FECF78';
+        });
+        
+        document.getElementById('header-bg-color-text').addEventListener('input', function(e) {
+            if (e.target.value) {
+                document.getElementById('header-bg-color').value = e.target.value;
+            }
+        });
+        
+        // 主图显示模式切换提示
+        document.getElementById('main-image-fit').addEventListener('change', function(e) {
+            const fitDisplay = document.getElementById('main-image-fit-display');
+            const mode = e.target.value;
+            if (mode === 'contain') {
+                fitDisplay.innerHTML = '✅ Contain 模式：保持原始比例，推荐';
+                fitDisplay.style.color = '#51cf66';
+            } else if (mode === 'cover') {
+                fitDisplay.innerHTML = 'Cover 模式：填满区域，可能裁剪边缘';
+                fitDisplay.style.color = '#FECF78';
+            } else {
+                fitDisplay.innerHTML = '⚠️ Fill 模式：拉伸填满，可能变形';
+                fitDisplay.style.color = '#ff6b6b';
+            }
+        });
+        
+        // 重置背景色
+        function resetHeaderBgColor() {
+            document.getElementById('header-bg-color').value = '#FFB347';
+            document.getElementById('header-bg-color-text').value = '';
+            document.getElementById('header-bg-display').textContent = '当前：自动提取主图色调';
+            document.getElementById('header-bg-display').style.color = '#888';
+        }
 
         function selectFolder() {
             document.getElementById('folder-input').click();
@@ -781,16 +839,47 @@
                 t1MainImg.style.display = 'block';
                 document.getElementById('template1-main-placeholder').style.display = 'none';
 
-                // 提取主色调
+                // 应用主图显示模式
+                const fitMode = document.getElementById('main-image-fit').value;
+                t1MainImg.style.objectFit = fitMode;
+                
+                // 检查主图比例并显示提示
                 const tempImg = new Image();
                 tempImg.src = t1MainData;
                 tempImg.onload = () => {
-                    try {
-                        const colorThief = new ColorThief();
-                        const color = colorThief.getColor(tempImg);
-                        const rgba = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.9)`;
-                        document.getElementById('template1-header').style.background = rgba;
-                    } catch(e) {}
+                    const aspectRatio = tempImg.width / tempImg.height;
+                    const isSquare = aspectRatio >= 0.9 && aspectRatio <= 1.1;
+                    const fitDisplay = document.getElementById('main-image-fit-display');
+                    
+                    if (fitMode === 'fill' && !isSquare) {
+                        fitDisplay.innerHTML = '⚠️ 警告：当前为拉伸模式，图片可能变形。建议切换为 Contain 或 Cover';
+                        fitDisplay.style.color = '#ff6b6b';
+                    } else if (fitMode === 'contain') {
+                        fitDisplay.innerHTML = '✅ Contain 模式：保持原始比例' + (isSquare ? '（图片为正方形，完美适配）' : '（非正方形，可能有留白）');
+                        fitDisplay.style.color = '#51cf66';
+                    } else {
+                        fitDisplay.innerHTML = '当前：' + fitMode + ' 模式';
+                        fitDisplay.style.color = '#888';
+                    }
+                    
+                    // 处理背景色
+                    const customColor = document.getElementById('header-bg-color-text').value || document.getElementById('header-bg-color').value;
+                    if (customColor) {
+                        // 使用用户自定义颜色
+                        document.getElementById('template1-header').style.background = customColor;
+                        document.getElementById('header-bg-display').textContent = '当前：自定义颜色 ' + customColor;
+                        document.getElementById('header-bg-display').style.color = '#51cf66';
+                    } else {
+                        // 自动提取主色调
+                        try {
+                            const colorThief = new ColorThief();
+                            const color = colorThief.getColor(tempImg);
+                            const rgba = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.9)`;
+                            document.getElementById('template1-header').style.background = rgba;
+                            document.getElementById('header-bg-display').textContent = '当前：自动提取主图色调';
+                            document.getElementById('header-bg-display').style.color = '#888';
+                        } catch(e) {}
+                    }
                 };
 
                 // 填充模板1的9张表情包
