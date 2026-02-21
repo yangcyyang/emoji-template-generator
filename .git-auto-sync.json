@@ -2,6 +2,22 @@
   "auto_commit": true,
   "auto_push": false,
   "commit_message_template": "auto: {filename} 于 {time}",
-  "ignore_patterns": ["*.tmp", "*.log", ".DS_Store", "__pycache__"],
-  "debounce_seconds": 5
+  "ignore_patterns": [
+    "*.tmp",
+    "*.log",
+    ".DS_Store",
+    "__pycache__"
+  ],
+  "debounce_seconds": 5,
+  "file_extensions": [
+    ".py",
+    ".html",
+    ".js",
+    ".css",
+    ".md",
+    ".json",
+    ".txt"
+  ],
+  "github_username": "yangcyyang",
+  "github_repo": "emoji-template-generator"
 }
